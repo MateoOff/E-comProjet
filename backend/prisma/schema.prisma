@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String    @id @default(uuid()) @db.Uuid
+  email     String    @unique
+  password  String
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now())
+  refreshTokenHash      String?   // ← hash du refresh token
+  refreshTokenExpiresAt DateTime? // ← expiration (gardée en clair)
+  products  Product[]
+  cart      Cart?     // one-to-one
+}
+
+model Product {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  price       Float
+  image       String?   // ou @db.VarChar(500) si tu veux limiter
+  ownerId     String    @db.Uuid
+  createdAt   DateTime  @default(now())
+
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Restrict) // ou Cascade si tu veux supprimer les produits quand user supprimé
+  cartItems   CartItem[]
+}
+
+model Cart {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @unique @db.Uuid
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String    @id @default(uuid()) @db.Uuid
+  cartId    String    @db.Uuid
+  productId String    @db.Uuid
+  quantity  Int       @default(1)
+
+  cart      Cart      @relation(fields: [cartId],    references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId]) // ← IMPORTANT : un seul item par produit dans le panier
+}
