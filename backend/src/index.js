@@ -1,6 +1,6 @@
 // backend/src/index.js
 import express from "express";
-import prisma from "./prismaClient.js"; // Ton Prisma Client
+import prisma from "../prismaClient.js"; // Ton Prisma Client
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
