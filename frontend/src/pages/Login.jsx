@@ -60,15 +60,6 @@ export default function Login({ setIsAuthenticated }) {
           <h2 className="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
             Connexion
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Pas encore de compte ?{" "}
-            <Link
-              to="/register"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              Inscrivez-vous
-            </Link>
-          </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -91,7 +82,7 @@ export default function Login({ setIsAuthenticated }) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value.trim())}
-                className="appearance-none rounded-t-md relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="appearance-none rounded-t-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 placeholder="Adresse email"
               />
             </div>
@@ -122,6 +113,15 @@ export default function Login({ setIsAuthenticated }) {
             >
               {loading ? "Connexion en cours..." : "Se connecter"}
             </Button>
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              Pas encore de compte ?{" "}
+              <Link
+                to="/register"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Inscrivez-vous
+              </Link>
+            </p>
           </div>
         </form>
       </div>
