@@ -13,6 +13,7 @@ import { Navbar } from "./layout/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import SellProduct from "./pages/SellProduct";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -43,7 +44,10 @@ function AppContent() {
 
       <main className="pt-20">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route
+            path="/"
+            element={<Home isAuthenticated={isAuthenticated} />}
+          />
 
           <Route
             path="/login"
@@ -62,6 +66,16 @@ function AppContent() {
               isAuthenticated ? <Navigate to="/" replace /> : <Register />
             }
           />
+
+          <Route
+            path="/sell"
+            element={
+              <ProtectedRoute>
+                <SellProduct />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
