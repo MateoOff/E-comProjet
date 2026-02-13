@@ -22,12 +22,17 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white/95 shadow-sm py-3" : "bg-white/80 py-4"
+        isScrolled
+          ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm py-3"
+          : "bg-transparent py-5"
       }`}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="text-xl font-bold text-gray-900">
+        <Link
+          to="/"
+          className="text-xl font-bold dark:text-gray-50 text-gray-900"
+        >
           Mon Shop
         </Link>
 
@@ -38,7 +43,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
               {/* Panier */}
               <Link
                 to="/cart"
-                className="relative flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+                className="relative flex items-center gap-2 text-gray-700 dark:text-gray-50 hover:text-blue-600 transition-colors"
               >
                 <ShoppingCart size={20} />
                 {cartItemCount > 0 && (
@@ -52,7 +57,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
               {/* Profil */}
               <Link
                 to="/profile"
-                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+                className="flex items-center gap-2 text-gray-700 dark:text-gray-50 hover:text-blue-600 transition-colors"
               >
                 <User size={20} />
                 Profil
@@ -90,7 +95,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
 
         {/* Bouton menu mobile */}
         <button
-          className="md:hidden p-2 text-gray-700 hover:text-blue-600"
+          className="md:hidden p-2 text-gray-700 dark:text-gray-50 hover:text-blue-600"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -99,7 +104,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
 
       {/* Menu mobile */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t">
+        <div className="md:hidden bg-white dark:bg-gray-900 border-t">
           <div className="container mx-auto px-4 py-5 flex flex-col gap-4">
             {isAuthenticated ? (
               <>

@@ -1,5 +1,6 @@
 import { Button } from "../components/Button";
 import { useNavigate } from "react-router-dom";
+import { Products } from "./../components/Products";
 
 // src/pages/Home.jsx
 export default function Home({ isAuthenticated }) {
@@ -38,6 +39,7 @@ export default function Home({ isAuthenticated }) {
           {isAuthenticated ? "Vendre un produit" : "Commencer à vendre"}
         </Button>
       )}
+      <Products />
     </div>
   );
 }
