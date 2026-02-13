@@ -158,6 +158,82 @@ app.post("/refresh", async (req, res) => {
   }
 });
 
+app.post("/products", authenticateToken, async (req, res) => {
+  const { title, description, price, image } = req.body;
+
+  // Validation de base
+  if (!title || !price) {
+    return res.status(400).json({ error: "Titre et prix sont obligatoires" });
+  }
+
+  if (typeof price !== "number" || price <= 0) {
+    return res
+      .status(400)
+      .json({ error: "Le prix doit être un nombre positif" });
+  }
+
+  // Si description ou image non fournis → valeurs par défaut ou null
+  const finalDescription = description?.trim() || null;
+  const finalImage = image?.trim() || null;
+
+  try {
+    const userId = req.user.userId; // venant du JWT (authenticateToken)
+
+    const newProduct = await prisma.product.create({
+      data: {
+        title: title.trim(),
+        description: finalDescription,
+        price,
+        image: finalImage,
+        ownerId: userId, // le créateur est le propriétaire
+      },
+    });
+
+    res.status(201).json({
+      message: "Produit créé avec succès",
+      product: newProduct,
+    });
+  } catch (error) {
+    console.error("Erreur création produit :", error);
+
+    if (error.code === "P2002") {
+      // unicité violée (très improbable ici, mais au cas où)
+      return res.status(409).json({ error: "Conflit de données" });
+    }
+
+    res
+      .status(500)
+      .json({ error: "Erreur serveur lors de la création du produit" });
+  }
+});
+
+app.get("/products", async (req, res) => {
+  try {
+    // Récupération de tous les produits
+    const products = await prisma.product.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: false,
+          },
+        },
+      },
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error("Erreur récupération produits :", error);
+    res
+      .status(500)
+      .json({ error: "Erreur serveur lors de la récupération des produits" });
+  }
+});
+
 // Lancer le serveur
 app.listen(PORT, () => {
   console.log(`Serveur lancé sur le port ${PORT}`);
