@@ -14,6 +14,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SellProduct from "./pages/SellProduct";
+import ProductDetail from "./pages/ProductDetail";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
-
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

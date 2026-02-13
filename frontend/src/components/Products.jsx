@@ -114,7 +114,7 @@ export const Products = () => {
                 </p>
 
                 <Link
-                  to={`/product/${product.id}`} // ← à créer plus tard si besoin
+                  to={`/product/${product.id}`}
                   className="block w-full text-center py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Voir le produit
