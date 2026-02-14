@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "../components/Button";
+import api, { setAuthToken } from "../lib/api"; // ← IMPORT ICI
 
 export default function Login({ setIsAuthenticated }) {
   const [email, setEmail] = useState("");
@@ -11,12 +12,9 @@ export default function Login({ setIsAuthenticated }) {
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Optionnel : message après inscription réussie
   const from = location.state?.from?.pathname || "/";
 
   useEffect(() => {
-    // Si déjà connecté → rediriger directement
     if (localStorage.getItem("accessToken")) {
       navigate(from, { replace: true });
     }
@@ -28,26 +26,19 @@ export default function Login({ setIsAuthenticated }) {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const { data } = await api.post("/login", { email, password });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Erreur de connexion");
-      }
-
-      // Stockage des tokens
+      // Stockage + mise à jour headers axios
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
+      setAuthToken(data.accessToken); // ← IMPORTANT pour axios
 
       setIsAuthenticated(true);
-      navigate(from, { replace: true }); // redirige vers la page demandée ou /
+      navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.response?.data?.error || err.message || "Erreur de connexion",
+      );
     } finally {
       setLoading(false);
     }
@@ -61,14 +52,12 @@ export default function Login({ setIsAuthenticated }) {
             Connexion
           </h2>
         </div>
-
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm">
               {error}
             </div>
           )}
-
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -103,7 +92,6 @@ export default function Login({ setIsAuthenticated }) {
               />
             </div>
           </div>
-
           <div>
             <Button
               type="submit"
