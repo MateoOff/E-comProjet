@@ -79,9 +79,9 @@ export const Products = () => {
             key={product.id}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"
           >
-            {product.image ? (
+            {product.images ? (
               <img
-                src={product.image}
+                src={product.images[0]} // première image du tableau
                 alt={product.title}
                 className="w-full h-48 object-cover"
                 onError={(e) => {

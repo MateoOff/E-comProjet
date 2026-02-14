@@ -7,6 +7,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -53,45 +54,58 @@ export default function ProductDetail() {
       </div>
     );
   }
-
+  const mainImage = product.images?.[selectedImageIndex] || null;
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Zone image */}
-        <div className="flex flex-col items-center">
-          {product.image ? (
-            <img
-              src={product.image}
-              alt={product.title}
-              className="w-full max-w-lg h-auto object-cover rounded-xl shadow-lg"
-              onError={(e) => {
-                e.target.src =
-                  "https://via.placeholder.com/600x600?text=Image+non+disponible";
-              }}
-            />
-          ) : (
-            <div className="w-full aspect-square bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-gray-500 dark:text-gray-400 text-lg">
-                Pas d'image disponible
-              </span>
-            </div>
-          )}
+        {/* === ZONE IMAGES === */}
+        <div className="flex flex-col gap-6">
+          {/* Image principale */}
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg">
+            {mainImage ? (
+              <img
+                src={mainImage}
+                alt={`${product.title} - vue principale`}
+                className="w-full h-auto max-h-125 object-contain mx-auto transition-transform duration-300 hover:scale-105"
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/600x600?text=Image+non+disponible";
+                }}
+              />
+            ) : (
+              <div className="w-full aspect-square flex items-center justify-center text-gray-500 dark:text-gray-400">
+                Aucune image disponible
+              </div>
+            )}
+          </div>
 
-          {/* Placeholder pour futures images multiples */}
-          {/* {product.images?.length > 1 && (
-            <div className="mt-6 grid grid-cols-4 gap-3 w-full max-w-lg">
+          {/* Galerie de miniatures (seulement si plusieurs images) */}
+          {product.images?.length > 1 && (
+            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
               {product.images.map((img, idx) => (
-                <img
+                <button
                   key={idx}
-                  src={img}
-                  alt={`${product.title} - vue ${idx + 1}`}
-                  className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80 transition"
-                />
+                  type="button"
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`shrink-0 snap-start rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                    selectedImageIndex === idx
+                      ? "border-blue-500 scale-105 shadow-md"
+                      : "border-transparent hover:border-blue-300 opacity-80 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`${product.title} - vue ${idx + 1}`}
+                    className="w-20 h-20 object-cover"
+                    onError={(e) => {
+                      e.target.src = "https://via.placeholder.com/80?text=?";
+                    }}
+                  />
+                </button>
               ))}
             </div>
-          )} */}
+          )}
         </div>
-
         {/* Infos produit */}
         <div className="flex flex-col">
           <h1 className="text-3xl font-bold mb-4">{product.title}</h1>

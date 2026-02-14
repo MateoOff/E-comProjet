@@ -159,7 +159,7 @@ app.post("/refresh", async (req, res) => {
 });
 
 app.post("/products", authenticateToken, async (req, res) => {
-  const { title, description, price, image } = req.body;
+  const { title, description, price, images = [] } = req.body; // ← accepte "images" (tableau)
 
   // Validation de base
   if (!title || !price) {
@@ -172,20 +172,28 @@ app.post("/products", authenticateToken, async (req, res) => {
       .json({ error: "Le prix doit être un nombre positif" });
   }
 
-  // Si description ou image non fournis → valeurs par défaut ou null
-  const finalDescription = description?.trim() || null;
-  const finalImage = image?.trim() || null;
+  // Validation images (doit être un tableau)
+  if (!Array.isArray(images)) {
+    return res
+      .status(400)
+      .json({ error: "Le champ 'images' doit être un tableau d'URLs" });
+  }
+
+  // Nettoyage : garde seulement les URLs valides
+  const validImages = images
+    .filter((url) => typeof url === "string" && url.trim().length > 0)
+    .map((url) => url.trim());
 
   try {
-    const userId = req.user.userId; // venant du JWT (authenticateToken)
+    const userId = req.user.userId;
 
     const newProduct = await prisma.product.create({
       data: {
         title: title.trim(),
-        description: finalDescription,
+        description: description?.trim() || null,
         price,
-        image: finalImage,
-        ownerId: userId, // le créateur est le propriétaire
+        images: validImages, // ← le bon champ !
+        ownerId: userId,
       },
     });
 
@@ -195,39 +203,35 @@ app.post("/products", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur création produit :", error);
-
     if (error.code === "P2002") {
-      // unicité violée (très improbable ici, mais au cas où)
       return res.status(409).json({ error: "Conflit de données" });
     }
-
     res
       .status(500)
       .json({ error: "Erreur serveur lors de la création du produit" });
   }
 });
-
+// Route publique : Lister TOUS les produits (pour la page boutique)
 app.get("/products", async (req, res) => {
   try {
-    // Récupération de tous les produits
     const products = await prisma.product.findMany({
+      // Tri : les plus récents en premier
       orderBy: {
         createdAt: "desc",
       },
-
+      // Inclure l'ID du propriétaire (pas d'email ou autres infos sensibles)
       include: {
         owner: {
           select: {
             id: true,
-            email: false,
           },
         },
       },
+      // Pas de select() ici → on renvoie TOUS les champs du produit (title, price, images, etc.)
     });
-
     res.json(products);
   } catch (error) {
-    console.error("Erreur récupération produits :", error);
+    console.error("Erreur lors de la récupération des produits :", error);
     res
       .status(500)
       .json({ error: "Erreur serveur lors de la récupération des produits" });
