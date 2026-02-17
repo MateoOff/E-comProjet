@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, LogOut, ShoppingCart, User } from "lucide-react";
-import { Button } from "../components/Button"; // ton Button custom
+import { Button } from "../components/Button";
 
 export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
