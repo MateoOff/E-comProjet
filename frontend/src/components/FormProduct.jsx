@@ -1,20 +1,42 @@
+// src/components/FormProduct.jsx
 import { useState } from "react";
-import { Button } from "./Button";
+import { Button } from "./Button"; // adapte le chemin si besoin
+import api from "../lib/api"; // ← IMPORTANT : utilise ton instance axios
 
-export const FormProduct = ({}) => {
+export const FormProduct = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [image, setImage] = useState("");
+  const [images, setImages] = useState([]); // tableau des URLs ajoutées
+  const [currentImageUrl, setCurrentImageUrl] = useState(""); // champ temporaire
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Ajouter l'URL courante au tableau
+  const addImage = () => {
+    const trimmedUrl = currentImageUrl.trim();
+    if (trimmedUrl) {
+      // Optionnel : vérification basique d'URL (tu peux améliorer avec regex)
+      if (!trimmedUrl.startsWith("http")) {
+        setError("L'URL doit commencer par http:// ou https://");
+        return;
+      }
+      setImages([...images, trimmedUrl]);
+      setCurrentImageUrl("");
+    }
+  };
+
+  // Supprimer une URL
+  const removeImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // Validation très basique
+    // Validation
     if (!title.trim() || !price) {
       setError("Le titre et le prix sont obligatoires");
       setLoading(false);
@@ -28,56 +50,53 @@ export const FormProduct = ({}) => {
       return;
     }
 
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        throw new Error("Vous devez être connecté pour ajouter un produit");
-      }
+    if (images.length === 0) {
+      setError("Ajoutez au moins une image");
+      setLoading(false);
+      return;
+    }
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/products`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim() || undefined,
-          price: priceNum,
-          image: image.trim() || undefined,
-        }),
+    try {
+      // Utilisation de api (axios) → refresh token automatique si 401
+      const response = await api.post("/products", {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        price: priceNum,
+        images, // tableau complet envoyé directement
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Erreur lors de la création du produit");
-      }
-
-      // Succès, on vide le formulaire
       alert("Produit ajouté avec succès !");
       setTitle("");
       setDescription("");
       setPrice("");
-      setImage("");
+      setImages([]);
+      setCurrentImageUrl("");
     } catch (err) {
-      setError(err.message || "Une erreur est survenue");
+      // Erreur gérée par l'interceptor axios + message clair
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Une erreur est survenue lors de l'ajout du produit",
+      );
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <div className="max-w-lg mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6 text-center">
         Mettre un produit en vente
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             {error}
           </div>
         )}
+
+        {/* Titre */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Titre <span className="text-red-500">*</span>
@@ -92,17 +111,19 @@ export const FormProduct = ({}) => {
           />
         </div>
 
+        {/* Description */}
         <div>
           <label className="block text-sm font-medium mb-1">Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={3}
+            rows={4}
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="Détails du produit..."
+            placeholder="Détails du produit, taille, matière, état..."
           />
         </div>
 
+        {/* Prix */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Prix (€) <span className="text-red-500">*</span>
@@ -119,23 +140,62 @@ export const FormProduct = ({}) => {
           />
         </div>
 
+        {/* Images multiples */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            URL de l'image
+          <label className="block text-sm font-medium mb-2">
+            Images du produit <span className="text-red-500">*</span>
           </label>
-          <input
-            type="url"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="https://exemple.com/image.jpg"
-          />
+
+          {/* Input + bouton Ajouter */}
+          <div className="flex gap-2 mb-3">
+            <input
+              type="url"
+              value={currentImageUrl}
+              onChange={(e) => setCurrentImageUrl(e.target.value)}
+              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="https://exemple.com/image.jpg"
+            />
+            <Button
+              type="button"
+              onClick={addImage}
+              variant="secondary"
+              disabled={!currentImageUrl.trim()}
+            >
+              Ajouter
+            </Button>
+          </div>
+
+          {/* Liste des URLs ajoutées */}
+          {images.length > 0 ? (
+            <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
+              {images.map((url, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm group"
+                >
+                  <span className="truncate flex-1 mr-4 break-all">{url}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium opacity-70 group-hover:opacity-100 transition-opacity"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+              Ajoutez au moins une image pour continuer
+            </p>
+          )}
         </div>
 
+        {/* Bouton Soumettre */}
         <Button
           type="submit"
           disabled={loading}
-          className="w-full mt-2"
+          className="w-full mt-4"
           variant="primary"
         >
           {loading ? "Ajout en cours..." : "Mettre en vente"}

@@ -14,6 +14,20 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SellProduct from "./pages/SellProduct";
+import ProductDetail from "./pages/ProductDetail";
+import { useInactivityLogout } from "./hooks/useInactivityLogout"; // ton hook corrigé
+import Cart from "./pages/Cart";
+
+function ProtectedRoute({ children }) {
+  const isAuthenticated = !!localStorage.getItem("accessToken");
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+}
 
 function AppContent() {
   const navigate = useNavigate();
@@ -23,13 +37,32 @@ function AppContent() {
     !!localStorage.getItem("accessToken"),
   );
 
+  // Synchronisation de l'état auth (multi-onglets + refresh)
   useEffect(() => {
-    const handleStorageChange = () => {
-      setIsAuthenticated(!!localStorage.getItem("accessToken"));
+    const checkAuth = () => {
+      const token = localStorage.getItem("accessToken");
+      setIsAuthenticated(!!token);
     };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+
+    checkAuth();
+
+    window.addEventListener("storage", checkAuth);
+
+    // Écoute la déconnexion forcée (ex: refresh token échoué)
+    const handleForcedLogout = () => {
+      setIsAuthenticated(false);
+      navigate("/login", { replace: true });
+    };
+    window.addEventListener("auth:forced-logout", handleForcedLogout);
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+      window.removeEventListener("auth:forced-logout", handleForcedLogout);
+    };
+  }, [navigate]);
+
+  // Déconnexion sur inactivité (30 min)
+  useInactivityLogout(isAuthenticated);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -48,7 +81,6 @@ function AppContent() {
             path="/"
             element={<Home isAuthenticated={isAuthenticated} />}
           />
-
           <Route
             path="/login"
             element={
@@ -59,14 +91,12 @@ function AppContent() {
               )
             }
           />
-
           <Route
             path="/register"
             element={
               isAuthenticated ? <Navigate to="/" replace /> : <Register />
             }
           />
-
           <Route
             path="/sell"
             element={
@@ -75,6 +105,15 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/product/:id" element={<ProductDetail />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -83,19 +122,6 @@ function AppContent() {
   );
 }
 
-// ────────────────────────────────────────────────
-function ProtectedRoute({ children }) {
-  const isAuthenticated = !!localStorage.getItem("accessToken");
-  const location = useLocation();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return children;
-}
-
-// ────────────────────────────────────────────────
 function App() {
   return (
     <Router>

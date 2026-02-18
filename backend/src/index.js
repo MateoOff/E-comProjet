@@ -159,7 +159,7 @@ app.post("/refresh", async (req, res) => {
 });
 
 app.post("/products", authenticateToken, async (req, res) => {
-  const { title, description, price, image } = req.body;
+  const { title, description, price, images = [] } = req.body; // ← accepte "images" (tableau)
 
   // Validation de base
   if (!title || !price) {
@@ -172,20 +172,28 @@ app.post("/products", authenticateToken, async (req, res) => {
       .json({ error: "Le prix doit être un nombre positif" });
   }
 
-  // Si description ou image non fournis → valeurs par défaut ou null
-  const finalDescription = description?.trim() || null;
-  const finalImage = image?.trim() || null;
+  // Validation images (doit être un tableau)
+  if (!Array.isArray(images)) {
+    return res
+      .status(400)
+      .json({ error: "Le champ 'images' doit être un tableau d'URLs" });
+  }
+
+  // Nettoyage : garde seulement les URLs valides
+  const validImages = images
+    .filter((url) => typeof url === "string" && url.trim().length > 0)
+    .map((url) => url.trim());
 
   try {
-    const userId = req.user.userId; // venant du JWT (authenticateToken)
+    const userId = req.user.userId;
 
     const newProduct = await prisma.product.create({
       data: {
         title: title.trim(),
-        description: finalDescription,
+        description: description?.trim() || null,
         price,
-        image: finalImage,
-        ownerId: userId, // le créateur est le propriétaire
+        images: validImages, // ← le bon champ !
+        ownerId: userId,
       },
     });
 
@@ -195,42 +203,227 @@ app.post("/products", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur création produit :", error);
-
     if (error.code === "P2002") {
-      // unicité violée (très improbable ici, mais au cas où)
       return res.status(409).json({ error: "Conflit de données" });
     }
-
     res
       .status(500)
       .json({ error: "Erreur serveur lors de la création du produit" });
   }
 });
-
+// Route publique : Lister TOUS les produits (pour la page boutique)
 app.get("/products", async (req, res) => {
   try {
-    // Récupération de tous les produits
     const products = await prisma.product.findMany({
+      // Tri : les plus récents en premier
       orderBy: {
         createdAt: "desc",
       },
-
+      // Inclure l'ID du propriétaire (pas d'email ou autres infos sensibles)
       include: {
         owner: {
           select: {
             id: true,
-            email: false,
+          },
+        },
+      },
+      // Pas de select() ici → on renvoie TOUS les champs du produit (title, price, images, etc.)
+    });
+    res.json(products);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des produits :", error);
+    res
+      .status(500)
+      .json({ error: "Erreur serveur lors de la récupération des produits" });
+  }
+});
+
+// Détail d'un produit (publique)
+app.get("/products/:id", async (req, res) => {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: req.params.id },
+      include: {
+        owner: {
+          select: { id: true }, // ou plus si tu veux afficher le nom du vendeur
+        },
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: "Produit non trouvé" });
+    }
+
+    res.json(product);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// POST /cart/items - Ajouter un produit au panier (ou incrémenter quantité)
+app.post("/cart/items", authenticateToken, async (req, res) => {
+  const { productId, quantity = 1 } = req.body;
+  const userId = req.user.userId;
+
+  if (!productId) return res.status(400).json({ error: "productId requis" });
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    return res
+      .status(400)
+      .json({ error: "Quantité doit être un entier positif" });
+  }
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!product) return res.status(404).json({ error: "Produit non trouvé" });
+
+    let cart = await prisma.cart.findUnique({ where: { userId } });
+    if (!cart) {
+      cart = await prisma.cart.create({ data: { userId } });
+    }
+
+    const existingItem = await prisma.cartItem.findUnique({
+      where: { cartId_productId: { cartId: cart.id, productId } },
+    });
+
+    if (existingItem) {
+      await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: { increment: quantity } },
+      });
+      return res.json({ message: "Quantité mise à jour" });
+    }
+
+    await prisma.cartItem.create({
+      data: { cartId: cart.id, productId, quantity },
+    });
+
+    res.status(201).json({ message: "Produit ajouté au panier" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// GET /cart - Récupérer le panier complet
+app.get("/cart", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const cart = await prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                title: true,
+                price: true,
+                images: true,
+                description: true,
+              },
+            },
           },
         },
       },
     });
 
-    res.json(products);
+    if (!cart || cart.items.length === 0) {
+      return res.json({ items: [], totalItems: 0, totalPrice: 0 });
+    }
+
+    const totalItems = cart.items.reduce((sum, i) => sum + i.quantity, 0);
+    const totalPrice = cart.items.reduce(
+      (sum, i) => sum + i.quantity * i.product.price,
+      0,
+    );
+
+    res.json({
+      items: cart.items.map((item) => ({
+        id: item.id,
+        product: item.product,
+        quantity: item.quantity,
+        subtotal: item.quantity * item.product.price,
+      })),
+      totalItems,
+      totalPrice: totalPrice.toFixed(2),
+    });
   } catch (error) {
-    console.error("Erreur récupération produits :", error);
-    res
-      .status(500)
-      .json({ error: "Erreur serveur lors de la récupération des produits" });
+    console.error(error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// Bonus : DELETE /cart/items/:itemId - Supprimer un item
+app.delete("/cart/items/:itemId", authenticateToken, async (req, res) => {
+  const { itemId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const cartItem = await prisma.cartItem.findUnique({
+      where: { id: itemId },
+      include: { cart: true },
+    });
+
+    if (!cartItem || cartItem.cart.userId !== userId) {
+      return res.status(404).json({ error: "Item non trouvé ou non autorisé" });
+    }
+
+    await prisma.cartItem.delete({ where: { id: itemId } });
+
+    res.json({ message: "Produit supprimé du panier" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// PATCH /cart/items/:itemId - Modifier la quantité d'un item
+app.patch("/cart/items/:itemId", authenticateToken, async (req, res) => {
+  const { itemId } = req.params;
+  const { quantity } = req.body;
+  const userId = req.user.userId;
+
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    return res
+      .status(400)
+      .json({ error: "Quantité doit être un entier positif" });
+  }
+
+  try {
+    const cartItem = await prisma.cartItem.findUnique({
+      where: { id: itemId },
+      include: { cart: true },
+    });
+
+    if (!cartItem || cartItem.cart.userId !== userId) {
+      return res.status(404).json({ error: "Item non trouvé ou non autorisé" });
+    }
+
+    const updatedItem = await prisma.cartItem.update({
+      where: { id: itemId },
+      data: { quantity },
+      include: {
+        product: {
+          select: { price: true },
+        },
+      },
+    });
+
+    res.json({
+      message: "Quantité mise à jour",
+      item: {
+        id: updatedItem.id,
+        quantity: updatedItem.quantity,
+        subtotal: updatedItem.quantity * updatedItem.product.price,
+      },
+    });
+  } catch (error) {
+    console.error("Erreur mise à jour quantité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
   }
 });
 

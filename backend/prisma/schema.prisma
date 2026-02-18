@@ -28,7 +28,7 @@ model Product {
   title       String
   description String?
   price       Float
-  image       String?   // ou @db.VarChar(500) si tu veux limiter
+  images      String[]  @default([])
   ownerId     String    @db.Uuid
   createdAt   DateTime  @default(now())
 
