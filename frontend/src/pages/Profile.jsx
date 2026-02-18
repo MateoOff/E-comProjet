@@ -203,6 +203,7 @@ export default function Profile() {
                   <p className="text-green-600 font-bold mt-1">
                     {prod.price.toFixed(2)} €
                   </p>
+                  <p className="text-white font-bold mt-1">x {prod.stock}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">
                     {prod.description || "Pas de description"}
                   </p>

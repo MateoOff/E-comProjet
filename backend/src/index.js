@@ -30,29 +30,53 @@ const authenticateToken = (req, res, next) => {
 
 // Route d'inscription (register)
 app.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email et mot de passe requis" });
+  // Validation
+  if (!email || !password || !username) {
+    return res
+      .status(400)
+      .json({ error: "Email, mot de passe et nom d'utilisateur sont requis" });
+  }
+
+  if (username.length < 3 || username.length > 20) {
+    return res.status(400).json({
+      error: "Le nom d'utilisateur doit faire entre 3 et 20 caractères",
+    });
+  }
+
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    return res.status(400).json({
+      error: "Le nom d'utilisateur ne peut contenir que lettres, chiffres et _",
+    });
   }
 
   try {
-    // Vérifier si l'user existe déjà
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
+    // Vérifier si l'email existe déjà
+    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    if (existingEmail) {
       return res.status(409).json({ error: "Email déjà utilisé" });
+    }
+
+    // Vérifier si le username existe déjà
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    });
+    if (existingUsername) {
+      return res.status(409).json({ error: "Nom d'utilisateur déjà pris" });
     }
 
     // Hasher le password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Créer l'user
+    // Créer l'utilisateur
     const user = await prisma.user.create({
       data: {
         email,
+        username, // ← AJOUTÉ
         password: hashedPassword,
-        role: "USER", // Par défaut
+        role: "USER",
       },
     });
 
@@ -446,6 +470,7 @@ app.get("/me", authenticateToken, async (req, res) => {
             title: true,
             description: true,
             price: true,
+            stock: true,
             images: true,
             createdAt: true,
           },

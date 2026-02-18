@@ -1,21 +1,22 @@
 // src/pages/Register.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Button } from "../components/Button"; // adapte le chemin selon ton projet
+import { Button } from "../components/Button";
 
 export default function Register() {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState(""); // ← NOUVEAU
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // Validation frontend
     if (password !== confirmPassword) {
       setError("Les mots de passe ne correspondent pas");
       return;
@@ -26,13 +27,30 @@ export default function Register() {
       return;
     }
 
+    if (!username) {
+      setError("Le nom d'utilisateur est obligatoire");
+      return;
+    }
+
+    if (username.length < 3 || username.length > 20) {
+      setError("Le nom d'utilisateur doit faire entre 3 et 20 caractères");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      setError(
+        "Le nom d'utilisateur ne peut contenir que lettres, chiffres et _",
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, username, password }), // ← AJOUT username
       });
 
       const data = await res.json();
@@ -41,7 +59,8 @@ export default function Register() {
         throw new Error(data.error || "Erreur lors de l'inscription");
       }
 
-      // Inscription réussie → on redirige vers login
+      // Succès → redirection vers login
+      alert("Inscription réussie ! Vous pouvez maintenant vous connecter.");
       navigate("/login");
     } catch (err) {
       setError(err.message);
@@ -67,6 +86,25 @@ export default function Register() {
           )}
 
           <div className="rounded-md shadow-sm -space-y-px">
+            {/* Username */}
+            <div>
+              <label htmlFor="username" className="sr-only">
+                Nom d'utilisateur
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value.trim())}
+                className="appearance-none rounded-t-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Nom d'utilisateur"
+              />
+            </div>
+
+            {/* Email */}
             <div>
               <label htmlFor="email" className="sr-only">
                 Email
@@ -79,10 +117,12 @@ export default function Register() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value.trim())}
-                className="appearance-none rounded-t-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Adresse email"
               />
             </div>
+
+            {/* Mot de passe */}
             <div>
               <label htmlFor="password" className="sr-only">
                 Mot de passe
@@ -95,27 +135,28 @@ export default function Register() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Mot de passe (min. 6 caractères)"
               />
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="confirm-password" className="sr-only">
-              Confirmer le mot de passe
-            </label>
-            <input
-              id="confirm-password"
-              name="confirm-password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Confirmer le mot de passe"
-            />
+            {/* Confirmation mot de passe */}
+            <div>
+              <label htmlFor="confirm-password" className="sr-only">
+                Confirmer le mot de passe
+              </label>
+              <input
+                id="confirm-password"
+                name="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Confirmer le mot de passe"
+              />
+            </div>
           </div>
 
           <div>
@@ -127,6 +168,7 @@ export default function Register() {
             >
               {loading ? "Inscription en cours..." : "S'inscrire"}
             </Button>
+
             <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
               Ou{" "}
               <Link
