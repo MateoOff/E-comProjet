@@ -17,6 +17,7 @@ import SellProduct from "./pages/SellProduct";
 import ProductDetail from "./pages/ProductDetail";
 import { useInactivityLogout } from "./hooks/useInactivityLogout"; // ton hook corrigé
 import Cart from "./pages/Cart";
+import Profile from "./pages/Profile";
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = !!localStorage.getItem("accessToken");
@@ -113,8 +114,17 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
-          <Route path="/product/:id" element={<ProductDetail />} />
 
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

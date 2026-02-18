@@ -30,29 +30,53 @@ const authenticateToken = (req, res, next) => {
 
 // Route d'inscription (register)
 app.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email et mot de passe requis" });
+  // Validation
+  if (!email || !password || !username) {
+    return res
+      .status(400)
+      .json({ error: "Email, mot de passe et nom d'utilisateur sont requis" });
+  }
+
+  if (username.length < 3 || username.length > 20) {
+    return res.status(400).json({
+      error: "Le nom d'utilisateur doit faire entre 3 et 20 caractères",
+    });
+  }
+
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    return res.status(400).json({
+      error: "Le nom d'utilisateur ne peut contenir que lettres, chiffres et _",
+    });
   }
 
   try {
-    // Vérifier si l'user existe déjà
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
+    // Vérifier si l'email existe déjà
+    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    if (existingEmail) {
       return res.status(409).json({ error: "Email déjà utilisé" });
+    }
+
+    // Vérifier si le username existe déjà
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    });
+    if (existingUsername) {
+      return res.status(409).json({ error: "Nom d'utilisateur déjà pris" });
     }
 
     // Hasher le password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Créer l'user
+    // Créer l'utilisateur
     const user = await prisma.user.create({
       data: {
         email,
+        username, // ← AJOUTÉ
         password: hashedPassword,
-        role: "USER", // Par défaut
+        role: "USER",
       },
     });
 
@@ -423,6 +447,140 @@ app.patch("/cart/items/:itemId", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur mise à jour quantité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// GET /me - Récupère les infos de l'utilisateur connecté + ses produits
+app.get("/me", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        createdAt: true,
+        // Pas de password ni tokens
+        products: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            stock: true,
+            images: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Erreur /me :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// PATCH /me
+app.patch("/me", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { username, email, password } = req.body;
+
+  try {
+    if (!username && !email && !password) {
+      return res.status(400).json({ error: "Aucun champ à modifier" });
+    }
+
+    const updateData = {};
+
+    if (username) {
+      const existing = await prisma.user.findUnique({ where: { username } });
+      if (existing && existing.id !== userId) {
+        return res
+          .status(409)
+          .json({ error: "Nom d'utilisateur déjà utilisé" });
+      }
+      updateData.username = username.trim();
+    }
+
+    if (email) {
+      const existing = await prisma.user.findUnique({ where: { email } });
+      if (existing && existing.id !== userId) {
+        return res.status(409).json({ error: "Email déjà utilisé" });
+      }
+      updateData.email = email.trim();
+    }
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password, salt);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        createdAt: true,
+        products: {
+          // ← AJOUTE ÇA pour renvoyer aussi les produits
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            images: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    res.json({ message: "Profil mis à jour", user: updatedUser });
+  } catch (error) {
+    console.error("Erreur mise à jour profil :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+app.delete("/products/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: "Produit non trouvé" });
+    }
+
+    if (product.ownerId !== userId) {
+      return res
+        .status(403)
+        .json({ error: "Vous n'êtes pas le propriétaire de ce produit" });
+    }
+
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Produit supprimé avec succès" });
+  } catch (error) {
+    console.error("Erreur suppression produit :", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
