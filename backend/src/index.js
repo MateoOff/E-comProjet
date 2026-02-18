@@ -427,6 +427,109 @@ app.patch("/cart/items/:itemId", authenticateToken, async (req, res) => {
   }
 });
 
+// GET /me - Récupère les infos de l'utilisateur connecté + ses produits
+app.get("/me", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        createdAt: true,
+        // Pas de password ni tokens
+        products: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            images: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Erreur /me :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// PATCH /me
+app.patch("/me", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { username, email, password } = req.body;
+
+  try {
+    if (!username && !email && !password) {
+      return res.status(400).json({ error: "Aucun champ à modifier" });
+    }
+
+    const updateData = {};
+
+    if (username) {
+      const existing = await prisma.user.findUnique({ where: { username } });
+      if (existing && existing.id !== userId) {
+        return res
+          .status(409)
+          .json({ error: "Nom d'utilisateur déjà utilisé" });
+      }
+      updateData.username = username.trim();
+    }
+
+    if (email) {
+      const existing = await prisma.user.findUnique({ where: { email } });
+      if (existing && existing.id !== userId) {
+        return res.status(409).json({ error: "Email déjà utilisé" });
+      }
+      updateData.email = email.trim();
+    }
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password, salt);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        createdAt: true,
+        products: {
+          // ← AJOUTE ÇA pour renvoyer aussi les produits
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            images: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    res.json({ message: "Profil mis à jour", user: updatedUser });
+  } catch (error) {
+    console.error("Erreur mise à jour profil :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
 // Lancer le serveur
 app.listen(PORT, () => {
   console.log(`Serveur lancé sur le port ${PORT}`);
