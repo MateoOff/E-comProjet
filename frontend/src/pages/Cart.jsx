@@ -146,18 +146,18 @@ export default function Cart() {
 
             {/* Contrôles quantité + supprimer */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded">
+              <div className="flex items-center border rounded border-gray-300 dark:border-gray-600 ">
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
                   disabled={item.quantity <= 1}
-                  className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+                  className="px-3 py-2 hover:bg-gray-100 rounded dark:hover:bg-gray-700"
                 >
                   <Minus size={16} />
                 </button>
                 <span className="px-4 py-2 font-medium">{item.quantity}</span>
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="px-3 py-2 hover:bg-gray-100 rounded dark:hover:bg-gray-700"
                 >
                   <Plus size={16} />
                 </button>
@@ -183,7 +183,7 @@ export default function Cart() {
 
         <button
           disabled
-          className="w-full max-w-md py-4 bg-blue-600 text-white font-semibold rounded-lg opacity-50 cursor-not-allowed"
+          className="w-full max-w-md py-4 bg-blue-600/50 text-white/50 font-semibold rounded-lg cursor-not-allowed"
         >
           Payer le panier (bientôt disponible)
         </button>

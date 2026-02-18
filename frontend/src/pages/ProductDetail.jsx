@@ -12,7 +12,7 @@ export default function ProductDetail() {
   const [addToCartLoading, setAddToCartLoading] = useState(false);
   const [addToCartSuccess, setAddToCartSuccess] = useState(false);
 
-  // Nouvelle fonction pour ajouter au panier
+  // Fonction pour ajouter au panier
   const handleAddToCart = async () => {
     setAddToCartLoading(true);
     setAddToCartSuccess(false);
