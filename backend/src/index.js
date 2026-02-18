@@ -530,6 +530,36 @@ app.patch("/me", authenticateToken, async (req, res) => {
   }
 });
 
+app.delete("/products/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: "Produit non trouvé" });
+    }
+
+    if (product.ownerId !== userId) {
+      return res
+        .status(403)
+        .json({ error: "Vous n'êtes pas le propriétaire de ce produit" });
+    }
+
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Produit supprimé avec succès" });
+  } catch (error) {
+    console.error("Erreur suppression produit :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
 // Lancer le serveur
 app.listen(PORT, () => {
   console.log(`Serveur lancé sur le port ${PORT}`);

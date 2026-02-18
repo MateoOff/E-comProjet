@@ -11,6 +11,7 @@ export const FormProduct = () => {
   const [currentImageUrl, setCurrentImageUrl] = useState(""); // champ temporaire
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stock, setStock] = useState("1");
 
   // Ajouter l'URL courante au tableau
   const addImage = () => {
@@ -44,8 +45,16 @@ export const FormProduct = () => {
     }
 
     const priceNum = parseFloat(price);
+    const stockNum = parseInt(stock, 10);
+
     if (isNaN(priceNum) || priceNum <= 0) {
       setError("Le prix doit être un nombre positif");
+      setLoading(false);
+      return;
+    }
+
+    if (isNaN(stockNum) || stockNum < 1) {
+      setError("Le stock doit être un entier positif");
       setLoading(false);
       return;
     }
@@ -62,6 +71,7 @@ export const FormProduct = () => {
         title: title.trim(),
         description: description.trim() || undefined,
         price: priceNum,
+        stock: stockNum,
         images, // tableau complet envoyé directement
       });
 
@@ -137,6 +147,22 @@ export const FormProduct = () => {
             required
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             placeholder="Ex: 24.99"
+          />
+        </div>
+
+        {/* Stock */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Stock disponible <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={stock}
+            onChange={(e) => setStock(e.target.value)}
+            required
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Ex: 10 (unités disponibles)"
           />
         </div>
 

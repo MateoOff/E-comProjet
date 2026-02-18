@@ -206,6 +206,35 @@ export default function Profile() {
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">
                     {prod.description || "Pas de description"}
                   </p>
+                  <div className="mt-4">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={async () => {
+                        if (
+                          !confirm(
+                            "Retirer ce produit de la vente ? Cette action est irréversible.",
+                          )
+                        )
+                          return;
+
+                        try {
+                          await api.delete(`/products/${prod.id}`);
+                          // Recharge les données du profil après suppression
+                          const refreshed = await api.get("/me");
+                          setUser(refreshed.data);
+                          alert("Produit retiré avec succès");
+                        } catch (err) {
+                          alert(
+                            "Erreur lors de la suppression : " +
+                              (err.response?.data?.error || err.message),
+                          );
+                        }
+                      }}
+                    >
+                      Retirer de la vente
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

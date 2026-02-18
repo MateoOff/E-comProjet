@@ -30,6 +30,7 @@ model Product {
   description String?
   price       Float
   images      String[]  @default([])
+  stock       Int       @default(1)
   ownerId     String    @db.Uuid
   createdAt   DateTime  @default(now())
 
