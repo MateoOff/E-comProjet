@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, LogOut, ShoppingCart, User } from "lucide-react";
 import { Button } from "../components/Button";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -23,16 +24,13 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm py-3"
+          ? "bg-background/90 backdrop-blur-md shadow-sm py-3"
           : "bg-transparent py-5"
       }`}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
-        <Link
-          to="/"
-          className="text-xl font-bold dark:text-gray-50 text-gray-900"
-        >
+        <Link to="/" className="text-xl font-bold text-foreground">
           Mon Shop
         </Link>
 
@@ -43,11 +41,11 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
               {/* Panier */}
               <Link
                 to="/cart"
-                className="relative flex items-center gap-2 text-gray-700 dark:text-gray-50 hover:text-blue-600 transition-colors"
+                className="relative flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
               >
                 <ShoppingCart size={20} />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] rounded-full px-1.5 min-w-4.5 h-4.5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-2 bg-destructive text-destructive-foreground text-[10px] rounded-full px-1.5 min-w-4.5 h-4.5 flex items-center justify-center">
                     {cartItemCount}
                   </span>
                 )}
@@ -57,12 +55,12 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
               {/* Profil */}
               <Link
                 to="/profile"
-                className="flex items-center gap-2 text-gray-700 dark:text-gray-50 hover:text-blue-600 transition-colors"
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
               >
                 <User size={20} />
                 Profil
               </Link>
-
+              <ThemeToggle />
               {/* Déconnexion – ici ton Button est parfait car c'est un <button> */}
               <Button
                 variant="destructive"
@@ -77,7 +75,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
             <>
               <Link
                 to="/login"
-                className="text-gray-700 hover:text-blue-600 transition-colors"
+                className="text-muted-foreground hover:text-primary transition-colors"
               >
                 Connexion
               </Link>
@@ -85,7 +83,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
               {/* Inscription – on utilise un <Link> stylé comme un bouton */}
               <Link
                 to="/register"
-                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-base font-medium text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-primary-foreground font-medium shadow-lg shadow-blue-600/25 hover:bg-primary/90transition-colors"
               >
                 Inscription
               </Link>
@@ -95,7 +93,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
 
         {/* Bouton menu mobile */}
         <button
-          className="md:hidden p-2 text-gray-700 dark:text-gray-50 hover:text-blue-600"
+          className="md:hidden p-2 text-muted-foreground hover:text-primary"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -104,13 +102,13 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
 
       {/* Menu mobile */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-900 border-t">
+        <div className="md:hidden bg-background border-t">
           <div className="container mx-auto px-4 py-5 flex flex-col gap-4">
             {isAuthenticated ? (
               <>
                 <Link
                   to="/cart"
-                  className="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-gray-100"
+                  className="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-muted"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <ShoppingCart size={20} />
@@ -119,13 +117,12 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
 
                 <Link
                   to="/profile"
-                  className="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-gray-100"
+                  className="flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-muted"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <User size={20} />
                   Profil
                 </Link>
-
                 <Button
                   variant="destructive"
                   className="w-full justify-start"
@@ -139,7 +136,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
               <>
                 <Link
                   to="/login"
-                  className="py-3 px-4 rounded-lg hover:bg-gray-100"
+                  className="py-3 px-4 rounded-lg hover:bg-muted"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Connexion
@@ -147,7 +144,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
 
                 <Link
                   to="/register"
-                  className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-base font-medium text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700 transition-colors w-full text-center"
+                  className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-lg shadow-blue-600/25 hover:bg-primary/90 transition-colors w-full text-center"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Inscription
