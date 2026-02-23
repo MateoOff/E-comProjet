@@ -16,7 +16,7 @@ export const Button = ({
     outline:
       "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
     primary:
-      "bg-blue-600 text-primary-foreground hover:bg-blue-600/75 shadow-lg shadow-primary/25",
+      "bg-primary text-white hover:bg-primary/75 shadow-lg shadow-primary/25",
   };
 
   const sizeClasses = {

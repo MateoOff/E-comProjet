@@ -1,7 +1,7 @@
 // src/components/ThemeToggle.jsx
 import { Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
-import { cn } from "../lib/utils"; // si tu as shadcn/ui ou tailwind-merge
+import { cn } from "../lib/utils";
 
 export const ThemeToggle = ({ className }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -31,7 +31,7 @@ export const ThemeToggle = ({ className }) => {
       onClick={toggleTheme}
       className={cn(
         "p-2 rounded-full transition-colors duration-300",
-        "hover:bg-gray-200 dark:hover:bg-gray-700",
+        "hover:bg-gray-200 dark:hover:bg-gray-300",
         "focus:outline-none ",
         "fixed top-4 right-5 z-50 max-sm:hidden",
         className,
@@ -41,7 +41,7 @@ export const ThemeToggle = ({ className }) => {
       {isDarkMode ? (
         <Sun className="h-6 w-6 text-yellow-400" />
       ) : (
-        <Moon className="h-6 w-6 text-gray-900 dark:text-gray-100" />
+        <Moon className="h-6 w-6 text-gray-900 " />
       )}
     </button>
   );

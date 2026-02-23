@@ -1,7 +1,7 @@
-// src/pages/Products.jsx
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import api from "../lib/api"; // ton axios
+import api from "../lib/api";
+import { cn } from "../lib/utils";
 
 export const Products = () => {
   const [products, setProducts] = useState([]);
@@ -13,7 +13,7 @@ export const Products = () => {
     const fetchProducts = async () => {
       try {
         const response = await api.get("/products");
-        setProducts(response.data); // ← ICI : .data contient le tableau
+        setProducts(response.data);
       } catch (err) {
         console.error("Erreur fetch products:", err);
         setError(
@@ -25,13 +25,10 @@ export const Products = () => {
         setLoading(false);
       }
     };
-
     fetchProducts();
   }, []);
 
-  // Fonction pour ajouter au panier (prend productId en paramètre)
   const handleAddToCart = async (productId) => {
-    // Marque ce produit comme "en cours"
     setCartStatus((prev) => ({
       ...prev,
       [productId]: { loading: true, success: false },
@@ -43,13 +40,11 @@ export const Products = () => {
         quantity: 1,
       });
 
-      // Succès
       setCartStatus((prev) => ({
         ...prev,
         [productId]: { loading: false, success: true },
       }));
 
-      // Message disparaît après 3s
       setTimeout(() => {
         setCartStatus((prev) => ({
           ...prev,
@@ -67,10 +62,8 @@ export const Products = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <p className="text-xl text-gray-600 dark:text-gray-400">
-          Chargement des produits...
-        </p>
+      <div className="container mx-auto px-4 py-16 text-center text-muted-foreground">
+        Chargement des produits...
       </div>
     );
   }
@@ -78,10 +71,10 @@ export const Products = () => {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <p className="text-xl text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-xl text-destructive">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="mt-6 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
         >
           Réessayer
         </button>
@@ -92,10 +85,10 @@ export const Products = () => {
   if (!Array.isArray(products) || products.length === 0) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-semibold mb-4">
+        <h2 className="text-2xl font-semibold text-foreground mb-4">
           Aucun produit disponible pour le moment
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
+        <p className="text-muted-foreground mb-8">
           Revenez bientôt ou connectez-vous pour en ajouter !
         </p>
       </div>
@@ -104,7 +97,9 @@ export const Products = () => {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold text-center mb-10">Nos produits</h1>
+      <h1 className="text-3xl font-bold text-center mb-10 text-foreground">
+        Nos produits
+      </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
         {products.map((product) => {
@@ -112,10 +107,11 @@ export const Products = () => {
             loading: false,
             success: false,
           };
+
           return (
             <div
               key={product.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"
+              className="bg-card rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col border border-border"
             >
               {product.images && product.images.length > 0 ? (
                 <img
@@ -128,38 +124,43 @@ export const Products = () => {
                   }}
                 />
               ) : (
-                <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Pas d'image
-                  </span>
+                <div className="w-full h-48 bg-muted flex items-center justify-center text-muted-foreground">
+                  Pas d'image
                 </div>
               )}
 
               <div className="p-5 flex flex-col grow">
-                <h3 className="text-lg font-semibold mb-2 line-clamp-2">
+                <h3 className="text-lg font-semibold mb-2 line-clamp-2 text-foreground">
                   {product.title}
                 </h3>
 
                 {product.description && (
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3 grow">
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3 grow">
                     {product.description}
                   </p>
                 )}
 
                 <div className="mt-auto">
-                  <p className="text-xl font-bold text-green-600 dark:text-green-400 mb-4">
+                  <p className="text-xl font-bold text-primary mb-4">
                     {product.price.toFixed(2)} €
                   </p>
 
                   <Link
                     to={`/product/${product.id}`}
-                    className="block w-full text-center py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="block w-full text-center py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     Voir le produit
                   </Link>
 
                   <button
-                    className={`mt-3 w-full py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-700/70 `}
+                    className={cn(
+                      "mt-3 w-full py-2 rounded-lg transition-colors",
+                      status.loading
+                        ? "bg-muted text-muted-foreground cursor-not-allowed"
+                        : status.success
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted hover:bg-muted/80 text-foreground",
+                    )}
                     onClick={() => handleAddToCart(product.id)}
                     disabled={status.loading}
                   >
