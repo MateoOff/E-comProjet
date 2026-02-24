@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Menu, X, LogOut, ShoppingCart, User } from "lucide-react";
 import { Button } from "../components/Button";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { cn } from "../lib/utils";
 
 export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -60,7 +61,7 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
                 <User size={20} />
                 Profil
               </Link>
-              <ThemeToggle />
+
               {/* Déconnexion – ici ton Button est parfait car c'est un <button> */}
               <Button
                 variant="destructive"
@@ -70,6 +71,12 @@ export const Navbar = ({ isAuthenticated, onLogout, cartItemCount = 0 }) => {
                 <LogOut size={16} className="mr-2" />
                 Déconnexion
               </Button>
+              <ThemeToggle
+                className={cn(
+                  "fixed right-5 z-50 p-2 rounded-full hover:bg-muted transition-all duration-300 max-sm:hidden",
+                  isScrolled ? "top-2" : "top-4", // ajuste selon tes py-3 / py-5
+                )}
+              />
             </>
           ) : (
             <>

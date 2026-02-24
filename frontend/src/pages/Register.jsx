@@ -5,7 +5,7 @@ import { Button } from "../components/Button";
 
 export default function Register() {
   const [email, setEmail] = useState("");
-  const [username, setUsername] = useState(""); // ← NOUVEAU
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,27 +16,22 @@ export default function Register() {
     e.preventDefault();
     setError("");
 
-    // Validation frontend
     if (password !== confirmPassword) {
       setError("Les mots de passe ne correspondent pas");
       return;
     }
-
     if (password.length < 6) {
       setError("Le mot de passe doit contenir au moins 6 caractères");
       return;
     }
-
     if (!username) {
       setError("Le nom d'utilisateur est obligatoire");
       return;
     }
-
     if (username.length < 3 || username.length > 20) {
       setError("Le nom d'utilisateur doit faire entre 3 et 20 caractères");
       return;
     }
-
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       setError(
         "Le nom d'utilisateur ne peut contenir que lettres, chiffres et _",
@@ -50,16 +45,12 @@ export default function Register() {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username, password }), // ← AJOUT username
+        body: JSON.stringify({ email, username, password }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         throw new Error(data.error || "Erreur lors de l'inscription");
       }
-
-      // Succès → redirection vers login
       alert("Inscription réussie ! Vous pouvez maintenant vous connecter.");
       navigate("/login");
     } catch (err) {
@@ -70,17 +61,17 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="max-w-md w-full space-y-8 p-8 bg-card rounded-xl shadow-lg border border-border">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
             Créer un compte
           </h2>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm">
+            <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded text-sm">
               {error}
             </div>
           )}
@@ -99,7 +90,7 @@ export default function Register() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value.trim())}
-                className="appearance-none rounded-t-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-t-md relative block mb-2 w-full px-3 py-3 border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="Nom d'utilisateur"
               />
             </div>
@@ -117,7 +108,7 @@ export default function Register() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value.trim())}
-                className="appearance-none rounded-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full mb-2 px-3 py-3 border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="Adresse email"
               />
             </div>
@@ -135,7 +126,7 @@ export default function Register() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full mb-2 px-3 py-3 border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="Mot de passe (min. 6 caractères)"
               />
             </div>
@@ -153,7 +144,7 @@ export default function Register() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="Confirmer le mot de passe"
               />
             </div>
@@ -169,11 +160,11 @@ export default function Register() {
               {loading ? "Inscription en cours..." : "S'inscrire"}
             </Button>
 
-            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-center text-sm text-muted-foreground">
               Ou{" "}
               <Link
                 to="/login"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 connectez-vous
               </Link>

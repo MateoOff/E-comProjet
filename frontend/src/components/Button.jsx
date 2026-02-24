@@ -12,9 +12,7 @@ export const Button = ({
     default:
       "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25",
     destructive:
-      "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-600/25",
-    outline:
-      "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
+      "bg-destructive text-white hover:bg-destructive/80 shadow-lg shadow-destructive/25",
     primary:
       "bg-primary text-white hover:bg-primary/75 shadow-lg shadow-primary/25",
   };

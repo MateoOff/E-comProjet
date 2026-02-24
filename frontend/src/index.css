@@ -21,13 +21,13 @@
     --background: #f2f2f2; /* fond principal gris clair doux */
     --foreground: #404040; /* texte principal gris foncé */
     --card: #f5f0ea; /* cartes beige/sable chaleureux */
-    --subcard: #d0b89a; /* ← beau marron clair chaleureux, doux et élégant */
+    --subcard: #e4d1b3; /* ← beau marron clair chaleureux, doux et élégant */
     --primary: #6f8c51; /* vert olive principal */
     --primary-foreground: #ffffff; /* texte blanc sur vert */
     --muted: #e5e7eb; /* hover gris très clair */
     --muted-foreground: #6b7280; /* gris moyen pour secondary text */
     --border: #d1d5db; /* bordures gris clair */
-    --border-subcard: #b89a7a;
+    --border-subcard: #d8c2a4;
     --destructive: #e11d48; /* rose-rouge vif pour danger */
     --destructive-foreground: #ffffff;
   }
