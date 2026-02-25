@@ -1,25 +1,59 @@
 @import "tailwindcss";
+
 @theme {
-  --color-background: #0f1418;
-  --color-foreground: #f0f2f5;
-  --color-card: #141a1f;
-  --color-primary: oklch(58.5% 0.233 277.117);
-  --color-primary-foreground: #ffffff;
-  --color-muted: #252e37;
-  --color-muted-foreground: #7a8491;
-  --color-border: #242b32;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-subcard: var(--subcard);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-subcard: var(--border-subcard);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --radius: 0.75rem;
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
+  :root {
+    --background: #f2f2f2; /* fond principal gris clair doux */
+    --foreground: #404040; /* texte principal gris foncé */
+    --card: #f5f0ea; /* cartes beige/sable chaleureux */
+    --subcard: #e4d1b3; /* ← beau marron clair chaleureux, doux et élégant */
+    --primary: #6f8c51; /* vert olive principal */
+    --primary-foreground: #ffffff; /* texte blanc sur vert */
+    --muted: #e5e7eb; /* hover gris très clair */
+    --muted-foreground: #6b7280; /* gris moyen pour secondary text */
+    --border: #d1d5db; /* bordures gris clair */
+    --border-subcard: #d8c2a4;
+    --destructive: #e11d48; /* rose-rouge vif pour danger */
+    --destructive-foreground: #ffffff;
+  }
+
+  .dark {
+    --background: #111827; /* slate-950 profond */
+    --foreground: #e2e8f0; /* texte gris clair */
+    --card: #1e293b; /* slate-800 pour cartes */
+    --subcard: #2d3748; /* ← version dark de marron clair : gris-anthracite profond */
+    --primary: #70b000; /* lime-500 plus lumineux en dark */
+    --primary-foreground: #ffffff;
+    --muted: #334155; /* slate-700 muted */
+    --muted-foreground: #94a3b8;
+    --border: #475569; /* slate-600 */
+    --border-subcard: #475569;
+    --destructive: #f43f5e; /* rose-500 vif en dark */
+    --destructive-foreground: #ffffff;
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-family: "Inter", system-ui, sans-serif;
+    @apply bg-background text-foreground;
+  }
+
+  /* Pour les transitions fluides */
+  * {
+    @apply transition-colors duration-200;
   }
 }
 

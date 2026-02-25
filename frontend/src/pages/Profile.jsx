@@ -19,9 +19,7 @@ export default function Profile() {
     const fetchProfile = async () => {
       try {
         const response = await api.get("/me");
-
         const profileData = response.data;
-
         setUser(profileData);
         setFormData({
           username: profileData.username || "",
@@ -75,21 +73,37 @@ export default function Profile() {
     }
   };
 
-  if (loading)
-    return <div className="text-center py-20">Chargement du profil...</div>;
-  if (error)
-    return <div className="text-center py-20 text-red-600">{error}</div>;
-  if (!user) return <div className="text-center py-20">Profil introuvable</div>;
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-muted-foreground">
+        Chargement du profil...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-center py-20 text-destructive">{error}</div>;
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center py-20 text-muted-foreground">
+        Profil introuvable
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-4xl">
-      <h1 className="text-3xl font-bold text-center mb-10">Mon Profil</h1>
+    <div className="container mx-auto px-4 py-12 max-w-4xl bg-background text-foreground">
+      <h1 className="text-3xl font-bold text-center mb-10 text-foreground">
+        Mon Profil
+      </h1>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+      <div className="bg-card rounded-xl shadow-lg p-8">
         {/* Infos personnelles */}
         <div className="mb-10">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">
+            <h2 className="text-2xl font-semibold text-foreground">
               Informations personnelles
             </h2>
             <Button
@@ -114,7 +128,7 @@ export default function Profile() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-muted-foreground">
                 Nom d'utilisateur
               </label>
               {editMode ? (
@@ -122,34 +136,38 @@ export default function Profile() {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Choisissez un nom unique"
                 />
               ) : (
-                <p className="text-lg font-medium">
+                <p className="text-lg font-medium text-foreground">
                   {user.username || "Non défini"}
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="block text-sm font-medium mb-1 text-muted-foreground">
+                Email
+              </label>
               {editMode ? (
                 <input
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               ) : (
-                <p className="text-lg">{user.email || "Non défini"}</p>
+                <p className="text-lg text-foreground">
+                  {user.email || "Non défini"}
+                </p>
               )}
             </div>
 
             {editMode && (
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-muted-foreground">
                   Nouveau mot de passe (optionnel)
                 </label>
                 <input
@@ -158,16 +176,16 @@ export default function Profile() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Laissez vide pour ne pas changer"
-                  className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-muted-foreground">
                 Inscrit le
               </label>
-              <p className="text-lg">
+              <p className="text-lg text-foreground">
                 {user.createdAt
                   ? new Date(user.createdAt).toLocaleDateString("fr-FR", {
                       weekday: "long",
@@ -183,14 +201,16 @@ export default function Profile() {
 
         {/* Mes produits */}
         <div>
-          <h2 className="text-2xl font-semibold mb-6">Mes produits en vente</h2>
+          <h2 className="text-2xl font-semibold mb-6 text-foreground">
+            Mes produits en vente
+          </h2>
 
           {user.products?.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {user.products.map((prod) => (
                 <div
                   key={prod.id}
-                  className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 shadow hover:shadow-md transition"
+                  className="bg-subcard rounded-lg p-4 shadow hover:shadow-md transition border border-border-subcard"
                 >
                   {prod.images?.[0] && (
                     <img
@@ -199,14 +219,19 @@ export default function Profile() {
                       className="w-full h-40 object-cover rounded mb-3"
                     />
                   )}
-                  <h3 className="font-medium text-lg">{prod.title}</h3>
-                  <p className="text-green-600 font-bold mt-1">
+                  <h3 className="font-medium text-lg text-foreground">
+                    {prod.title}
+                  </h3>
+                  <p className="text-primary font-bold mt-1">
                     {prod.price.toFixed(2)} €
                   </p>
-                  <p className="text-white font-bold mt-1">x {prod.stock}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">
+                  <p className="text-primary font-bold mt-1">
+                    Stock : {prod.stock}
+                  </p>
+                  <p className="text-muted-foreground text-sm mt-2 line-clamp-2">
                     {prod.description || "Pas de description"}
                   </p>
+
                   <div className="mt-4">
                     <Button
                       variant="destructive"
@@ -218,10 +243,8 @@ export default function Profile() {
                           )
                         )
                           return;
-
                         try {
                           await api.delete(`/products/${prod.id}`);
-                          // Recharge les données du profil après suppression
                           const refreshed = await api.get("/me");
                           setUser(refreshed.data);
                           alert("Produit retiré avec succès");
@@ -240,7 +263,7 @@ export default function Profile() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 dark:text-gray-400 italic">
+            <p className="text-muted-foreground italic">
               Vous n'avez pas encore mis de produits en vente.
             </p>
           )}

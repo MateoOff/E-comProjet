@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
-import { Plus, Minus, Trash2 } from "lucide-react"; // ← ajoute ces icônes
+import { Plus, Minus, Trash2 } from "lucide-react";
 
 export default function Cart() {
   const [cart, setCart] = useState({
@@ -35,12 +35,10 @@ export default function Cart() {
   }, []);
 
   const updateQuantity = async (itemId, newQuantity) => {
-    if (newQuantity < 1) return; // empêche quantité < 1
+    if (newQuantity < 1) return;
 
     try {
-      const response = await api.patch(`/cart/items/${itemId}`, {
-        quantity: newQuantity,
-      });
+      await api.patch(`/cart/items/${itemId}`, { quantity: newQuantity });
 
       setCart((prev) => {
         const updatedItems = prev.items.map((item) =>
@@ -96,16 +94,28 @@ export default function Cart() {
     }
   };
 
-  if (loading)
-    return <div className="text-center py-20">Chargement du panier...</div>;
-  if (error)
-    return <div className="text-center py-20 text-red-600">{error}</div>;
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-muted-foreground">
+        Chargement du panier...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-center py-20 text-destructive">{error}</div>;
+  }
 
   if (cart.items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold mb-4">Votre panier est vide</h2>
-        <Link to="/products" className="text-blue-600 hover:underline">
+      <div className="container mx-auto px-4 py-20 text-center bg-background text-foreground">
+        <h2 className="text-2xl font-bold mb-4 text-foreground">
+          Votre panier est vide
+        </h2>
+        <Link
+          to="/products"
+          className="text-primary hover:text-primary/80 transition-colors"
+        >
           Continuer vos achats
         </Link>
       </div>
@@ -113,84 +123,95 @@ export default function Cart() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl">
-      <h1 className="text-3xl font-bold mb-8 text-center">Mon Panier</h1>
+    <div className="container mx-auto px-4 py-12 max-w-5xl bg-background text-foreground">
+      <h1 className="text-3xl font-bold mb-8 text-center text-foreground">
+        Mon Panier
+      </h1>
 
-      <div className="space-y-6">
-        {cart.items.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-col sm:flex-row items-center gap-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
-          >
-            {/* Image */}
-            <img
-              src={
-                item.product?.images?.[0] || "https://via.placeholder.com/120"
-              }
-              alt={item.product?.title || "Produit"}
-              className="w-32 h-32 object-cover rounded"
-            />
+      {/* Card principale qui englobe TOUT */}
+      <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+        {/* Liste des articles */}
+        <div className="p-6 space-y-6">
+          {cart.items.map((item) => (
+            <div
+              key={item.id}
+              className="flex flex-col sm:flex-row items-center gap-6 bg-subcard p-5 rounded-lg border border-border-subcard hover:bg-subcard/90 transition"
+            >
+              {/* Image */}
+              <img
+                src={
+                  item.product?.images?.[0] || "https://via.placeholder.com/120"
+                }
+                alt={item.product?.title || "Produit"}
+                className="w-32 h-32 object-cover rounded"
+              />
 
-            {/* Infos */}
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold">
-                {item.product?.title || "Produit inconnu"}
-              </h3>
-              <p className="text-green-600 font-bold mt-1">
-                {item.product?.price?.toFixed(2) ?? "—"} € × {item.quantity}
-              </p>
-              <p className="text-gray-600 dark:text-gray-300 mt-2">
-                Sous-total : {item.subtotal?.toFixed(2) ?? "—"} €
-              </p>
-            </div>
-
-            {/* Contrôles quantité + supprimer */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border rounded border-gray-300 dark:border-gray-600 ">
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  disabled={item.quantity <= 1}
-                  className="px-3 py-2 hover:bg-gray-100 rounded dark:hover:bg-gray-700"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="px-4 py-2 font-medium">{item.quantity}</span>
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="px-3 py-2 hover:bg-gray-100 rounded dark:hover:bg-gray-700"
-                >
-                  <Plus size={16} />
-                </button>
+              {/* Infos */}
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-foreground">
+                  {item.product?.title || "Produit inconnu"}
+                </h3>
+                <p className="text-primary font-bold mt-1">
+                  {item.product?.price?.toFixed(2) ?? "—"} € × {item.quantity}
+                </p>
+                <p className="text-muted-foreground mt-2">
+                  Sous-total : {item.subtotal?.toFixed(2) ?? "—"} €
+                </p>
               </div>
 
-              <button
-                onClick={() => removeItem(item.id)}
-                className="p-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-              >
-                <Trash2 size={20} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+              {/* Contrôles quantité + supprimer */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center border border-border rounded">
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                    className="px-3 py-2 hover:bg-muted disabled:opacity-50 text-foreground"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <span className="px-4 py-2 font-medium text-foreground">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="px-3 py-2 hover:bg-muted text-foreground"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
 
-      {/* Total et payer */}
-      <div className="mt-12 bg-gray-100 dark:bg-gray-800 p-8 rounded-xl text-center">
-        <div className="text-2xl font-bold mb-4">
-          Total ({cart.totalItems} article{cart.totalItems !== 1 ? "s" : ""}) :{" "}
-          {cart.totalPrice} €
+                <button
+                  onClick={() => removeItem(item.id)}
+                  className="p-3 text-destructive hover:text-destructive/80 transition-colors"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <button
-          disabled
-          className="w-full max-w-md py-4 bg-blue-600/50 text-white/50 font-semibold rounded-lg cursor-not-allowed"
-        >
-          Payer le panier (bientôt disponible)
-        </button>
+        {/* Séparateur visuel subtil */}
+        <div className="border-t border-border mx-6"></div>
 
-        <p className="mt-4 text-sm text-gray-500">
-          Fonctionnalité de paiement en cours de développement
-        </p>
+        {/* Total et payer (dans la même card principale) */}
+        <div className="p-8 text-center">
+          <div className="text-2xl font-bold mb-6 text-foreground">
+            Total ({cart.totalItems} article{cart.totalItems !== 1 ? "s" : ""})
+            : {cart.totalPrice} €
+          </div>
+
+          <button
+            disabled
+            className="w-full max-w-md py-4 bg-primary/70 text-primary-foreground/70 font-semibold rounded-lg cursor-not-allowed mb-4"
+          >
+            Payer le panier (bientôt disponible)
+          </button>
+
+          <p className="text-sm text-muted-foreground">
+            Fonctionnalité de paiement en cours de développement
+          </p>
+        </div>
       </div>
     </div>
   );

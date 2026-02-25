@@ -1,23 +1,21 @@
 // src/components/FormProduct.jsx
 import { useState } from "react";
-import { Button } from "./Button"; // adapte le chemin si besoin
-import api from "../lib/api"; // ← IMPORTANT : utilise ton instance axios
+import { Button } from "./Button";
+import api from "../lib/api";
 
 export const FormProduct = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [images, setImages] = useState([]); // tableau des URLs ajoutées
-  const [currentImageUrl, setCurrentImageUrl] = useState(""); // champ temporaire
+  const [stock, setStock] = useState("1");
+  const [images, setImages] = useState([]);
+  const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [stock, setStock] = useState("1");
 
-  // Ajouter l'URL courante au tableau
   const addImage = () => {
     const trimmedUrl = currentImageUrl.trim();
     if (trimmedUrl) {
-      // Optionnel : vérification basique d'URL (tu peux améliorer avec regex)
       if (!trimmedUrl.startsWith("http")) {
         setError("L'URL doit commencer par http:// ou https://");
         return;
@@ -27,7 +25,6 @@ export const FormProduct = () => {
     }
   };
 
-  // Supprimer une URL
   const removeImage = (index) => {
     setImages(images.filter((_, i) => i !== index));
   };
@@ -37,9 +34,8 @@ export const FormProduct = () => {
     setError("");
     setLoading(true);
 
-    // Validation
-    if (!title.trim() || !price) {
-      setError("Le titre et le prix sont obligatoires");
+    if (!title.trim() || !price || !stock) {
+      setError("Le titre, le prix et le stock sont obligatoires");
       setLoading(false);
       return;
     }
@@ -66,23 +62,22 @@ export const FormProduct = () => {
     }
 
     try {
-      // Utilisation de api (axios) → refresh token automatique si 401
-      const response = await api.post("/products", {
+      await api.post("/products", {
         title: title.trim(),
         description: description.trim() || undefined,
         price: priceNum,
         stock: stockNum,
-        images, // tableau complet envoyé directement
+        images,
       });
 
       alert("Produit ajouté avec succès !");
       setTitle("");
       setDescription("");
       setPrice("");
+      setStock("1");
       setImages([]);
       setCurrentImageUrl("");
     } catch (err) {
-      // Erreur gérée par l'interceptor axios + message clair
       setError(
         err.response?.data?.error ||
           err.message ||
@@ -94,49 +89,51 @@ export const FormProduct = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">
+    <div className="max-w-lg mx-auto p-6 bg-card rounded-lg shadow-md border border-border">
+      <h2 className="text-2xl font-bold mb-6 text-center text-foreground">
         Mettre un produit en vente
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded">
             {error}
           </div>
         )}
 
         {/* Titre */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Titre <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium mb-1 text-muted-foreground">
+            Titre <span className="text-destructive">*</span>
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Ex: T-shirt coton bio"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
+          <label className="block text-sm font-medium mb-1 text-muted-foreground">
+            Description
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Détails du produit, taille, matière, état..."
           />
         </div>
 
         {/* Prix */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Prix (€) <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium mb-1 text-muted-foreground">
+            Prix (€) <span className="text-destructive">*</span>
           </label>
           <input
             type="number"
@@ -145,15 +142,15 @@ export const FormProduct = () => {
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Ex: 24.99"
           />
         </div>
 
         {/* Stock */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Stock disponible <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium mb-1 text-muted-foreground">
+            Stock disponible <span className="text-destructive">*</span>
           </label>
           <input
             type="number"
@@ -161,49 +158,49 @@ export const FormProduct = () => {
             value={stock}
             onChange={(e) => setStock(e.target.value)}
             required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Ex: 10 (unités disponibles)"
           />
         </div>
 
         {/* Images multiples */}
         <div>
-          <label className="block text-sm font-medium mb-2">
-            Images du produit <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium mb-2 text-muted-foreground">
+            Images du produit <span className="text-destructive">*</span>
           </label>
 
-          {/* Input + bouton Ajouter */}
           <div className="flex gap-2 mb-3">
             <input
               type="url"
               value={currentImageUrl}
               onChange={(e) => setCurrentImageUrl(e.target.value)}
-              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="flex-1 px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="https://exemple.com/image.jpg"
             />
             <Button
               type="button"
               onClick={addImage}
-              variant="secondary"
+              variant="primary"
               disabled={!currentImageUrl.trim()}
             >
               Ajouter
             </Button>
           </div>
 
-          {/* Liste des URLs ajoutées */}
           {images.length > 0 ? (
             <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
               {images.map((url, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm group"
+                  className="flex items-center justify-between bg-muted p-3 rounded-md text-sm border border-border"
                 >
-                  <span className="truncate flex-1 mr-4 break-all">{url}</span>
+                  <span className="truncate flex-1 mr-4 break-all text-foreground">
+                    {url}
+                  </span>
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium opacity-70 group-hover:opacity-100 transition-opacity"
+                    className="text-destructive hover:text-destructive/80 font-medium transition-colors"
                   >
                     Supprimer
                   </button>
@@ -211,7 +208,7 @@ export const FormProduct = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+            <p className="text-sm text-muted-foreground italic">
               Ajoutez au moins une image pour continuer
             </p>
           )}

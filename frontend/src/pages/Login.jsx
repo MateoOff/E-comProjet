@@ -2,14 +2,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "../components/Button";
-import api, { setAuthToken } from "../lib/api"; // ← IMPORT ICI
+import api, { setAuthToken } from "../lib/api";
 
 export default function Login({ setIsAuthenticated }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
@@ -27,12 +26,9 @@ export default function Login({ setIsAuthenticated }) {
 
     try {
       const { data } = await api.post("/login", { email, password });
-
-      // Stockage + mise à jour headers axios
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      setAuthToken(data.accessToken); // ← IMPORTANT pour axios
-
+      setAuthToken(data.accessToken);
       setIsAuthenticated(true);
       navigate(from, { replace: true });
     } catch (err) {
@@ -45,19 +41,21 @@ export default function Login({ setIsAuthenticated }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="max-w-md w-full space-y-8 p-8 bg-card rounded-xl shadow-lg border border-border">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
             Connexion
           </h2>
         </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm">
+            <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded text-sm">
               {error}
             </div>
           )}
+
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -71,10 +69,11 @@ export default function Login({ setIsAuthenticated }) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value.trim())}
-                className="appearance-none rounded-t-md relative block w-full mb-2 px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="appearance-none rounded-t-md relative block mb-2 w-full px-3 py-3 border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="Adresse email"
               />
             </div>
+
             <div>
               <label htmlFor="password" className="sr-only">
                 Mot de passe
@@ -87,11 +86,12 @@ export default function Login({ setIsAuthenticated }) {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
                 placeholder="Mot de passe"
               />
             </div>
           </div>
+
           <div>
             <Button
               type="submit"
@@ -101,11 +101,12 @@ export default function Login({ setIsAuthenticated }) {
             >
               {loading ? "Connexion en cours..." : "Se connecter"}
             </Button>
-            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+
+            <p className="mt-2 text-center text-sm text-muted-foreground">
               Pas encore de compte ?{" "}
               <Link
                 to="/register"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 Inscrivez-vous
               </Link>
